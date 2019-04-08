@@ -6,6 +6,10 @@ class Excel(object):
     chapters_pos = 0
     modules_pos = 1
     breaks_pos = 2
+    all_chapters = {
+        1: {},
+        2: {}
+    }
 
     def __init__(self, path: str, chapter_index, set_number=1, lo_pos=3):
         self._chapter_info_excel = {
@@ -13,10 +17,6 @@ class Excel(object):
             'modules_names': [],
             'breaks_names': [],
             'lo': []
-        }
-        self._all_chapters = {
-            1: {},
-            2: {}
         }
         self._chapter_index = chapter_index
         self._set_number = set_number
@@ -33,8 +33,11 @@ class Excel(object):
         # Убираем слово "chapter" из названия главы, если есть
         n = 0
         for i in all_info:
-            if i[0] and (i[0][:i[0].find(' ')] in ['chapter', 'Chapter']):
-                all_info[n][0] = i[0][i[0].find(' ')+1:]
+            if i[0]:
+                first_word = i[0][:i[0].find(' ')]
+                if first_word in ['chapter', 'Chapter']:
+                    all_info[n][0] = i[0][i[0].find(' ')+1:]
+                    all_info[n].append(first_word + ' ')
             n += 1
 
         return all_info
@@ -43,17 +46,17 @@ class Excel(object):
         """
         Добавляет название ScreenBreak-а в массив 'breaks' переданных главы и сета.
         """
-        break_title = all_info[0][self.breaks_pos].strip()
-        self._all_chapters[set_number][chapter_index]['breaks'].append(break_title)
+        break_title = all_info[self.breaks_pos].strip()
+        self.all_chapters[set_number][chapter_index]['breaks'].append(break_title)
 
     def _module_add(self, all_info, set_number, chapter_index):
         """
         Добавляет название модуля в массив 'modules' и 'breaks' переданных главы и сета.
         """
-        module_title = all_info[0][self.modules_pos].strip()
-        lo_title = all_info[0][self._lo_pos] if self._lo_pos else ""
-        self._all_chapters[set_number][chapter_index]['modules'].append((module_title, lo_title))
-        self._all_chapters[set_number][chapter_index]['breaks'].append(module_title)
+        module_title = all_info[self.modules_pos].strip()
+        lo_title = all_info[self._lo_pos] if self._lo_pos else ""
+        self.all_chapters[set_number][chapter_index]['modules'].append((module_title, lo_title))
+        self.all_chapters[set_number][chapter_index]['breaks'].append(module_title)
 
     def _chapter_add(self, all_info, set_number):
         """
@@ -61,14 +64,16 @@ class Excel(object):
         Индекс становится ключом в общем словаре, по которому можно получить всю информацию о главе.
         Добавляет название главы в созданный словарь.
         """
-        title = all_info[0][self.chapters_pos].strip()
+        title = all_info[self.chapters_pos].strip()
         chapter_index = title if title.find(' ') == -1 else title[:title.find(' ')]
         if chapter_index.find(':') != -1:
             chapter_index = int(chapter_index[:chapter_index.find(':')])
-        self._all_chapters[set_number][chapter_index] = {
-            'name': all_info[0][self.chapters_pos],
+        prefix = all_info.pop()
+        self.all_chapters[set_number][chapter_index] = {
+            'name': all_info[self.chapters_pos],
             'modules': [],
-            'breaks': []
+            'breaks': [],
+            'prefix': prefix
         }
         return chapter_index
 
@@ -82,51 +87,54 @@ class Excel(object):
         count = 0
         for i in all_info:
             if i[self.chapters_pos]:
-                if i[self.chapters_pos][:i[self.chapters_pos].find(' ')] in self._all_chapters[set_number]:
+                if i[self.chapters_pos][:i[self.chapters_pos].find(' ')] in self.all_chapters[set_number]:
                     set_number = 2
-                chapter_index = self._chapter_add(all_info[count:], set_number)
+                chapter_index = self._chapter_add(all_info[count], set_number)
             elif i[self.modules_pos]:
-                self._module_add(all_info[count:], set_number, chapter_index)
+                self._module_add(all_info[count], set_number, chapter_index)
             elif i[self.breaks_pos]:
-                self._break_add(all_info[count:], set_number, chapter_index)
+                self._break_add(all_info[count], set_number, chapter_index)
             count += 1
 
-    def name(self):
+    def title(self):
         """
         Возвращает название главы
         """
-        if not self._all_chapters[1]:
+        if not self.all_chapters[1]:
             self._dictionary_create()
-        return self._all_chapters[self._set_number][self._chapter_index]['name']
+        return (self.all_chapters[self._set_number][self._chapter_index]['prefix'] +
+                self.all_chapters[self._set_number][self._chapter_index]['name'])
 
     def breaks(self):
         """
         Возвращает все breaks в главе
         """
-        if not self._all_chapters[1]:
+        if not self.all_chapters[1]:
             self._dictionary_create()
-        return self._all_chapters[self._set_number][self._chapter_index]['breaks']
+        return self.all_chapters[self._set_number][self._chapter_index]['breaks']
 
     def modules(self):
         """
         Возвращает все модули в главе
         """
-        if not self._all_chapters[1]:
+        if not self.all_chapters[1]:
             self._dictionary_create()
-        return self._all_chapters[self._set_number][self._chapter_index]['modules']
+        return self.all_chapters[self._set_number][self._chapter_index]['modules']
 
-    def chapter_info(self):
+    def info(self):
         """
         Возвращает информацию о переданной главе в переданном сете.
         """
-        if not self._all_chapters[1]:
+        if not self.all_chapters[1]:
             self._dictionary_create()
-        return self._all_chapters[self._set_number][self._chapter_index]
+        return self.all_chapters[self._set_number][self._chapter_index]
 
 
 if __name__ == '__main__':
-    bauldoff = Excel('C:/work/Bauldoff.xlsx', 46, lo_pos=False)
-    assert bauldoff.breaks() == [
+    """   ТЕСТ   """
+    bauldoff_1 = Excel('C:/work/Bauldoff.xlsx', 46, 1, lo_pos=False)
+    # print(bauldoff_1.breaks())
+    assert bauldoff_1.breaks() == [
         'Introduction', '46.1 Eye Disorders', 'The Patient with Conjunctivitis', 'Nursing Care',
         'The Patient with a Corneal Disorder', 'Interprofessional Care', 'Nursing Care',
         'The Patient with a Disorder Affecting the Eyelids', 'The Patient with Eye Trauma', 'Nursing Care',
@@ -141,15 +149,34 @@ if __name__ == '__main__':
         'Test Yourself NCLEX-RN Review', 'References'
     ]
 
-    edwards_1 = Excel('C:/work/Edwards.xlsx', 9)
-    assert edwards_1.name() == '9: Campaigns and Voting Behavior'
+    Excel.all_chapters = {
+        1: {},
+        2: {}
+    }
+    bauldoff_2 = Excel('C:/work/Bauldoff.xlsx', 18, 1, lo_pos=False)
+    # print(bauldoff_2.title())
+    assert bauldoff_2.title() == 'Chapter 18: Assessing the Endocrine System'
 
-    edwards_2 = Excel('C:/work/Edwards.xlsx', 9, set_number=2, lo_pos=4)
+    Excel.all_chapters = {
+        1: {},
+        2: {}
+    }
+    edwards_1 = Excel('C:/work/Edwards.xlsx', 9, 1, 4)
+    # print(edwards_1.title())
+    assert edwards_1.title() == '9: Campaigns and Voting Behavior'
+
+    Excel.all_chapters = {
+        1: {},
+        2: {}
+    }
+    edwards_2 = Excel('C:/work/Edwards.xlsx', 12, set_number=2, lo_pos=4)
+    # print(edwards_2.modules())
     assert edwards_2.modules() == [
-        ('Introduction: Voting Rights in Georgia', ''),
-        ('9.1: Georgia and Discriminatory Voting Practices', ''),
-        ('9.2: Georgia and the Voting Rights Act', ''),
-        ('9.3: African American Office Holding in Georgia', ''),
-        ('9.4: Georgia Voter Photo ID', ''),
-        ('Conclusion: Voting Rights in Georgia', ''),
-        ('Chapter 9 Quiz: Voting Rights in Georgia', '')]
+        ('Introduction: Interest Groups', ''),
+        ('12.1: Types of Groups', ''),
+        ('12.2: Who Becomes a Lobbyist?', ''),
+        ('12.3: The Impact of the Change in Party Control on Lobbying', ''),
+        ('12.4: Ethics Reform', ''),
+        ('Conclusion: Interest Groups', ''),
+        ('Chapter 12 Quiz: Interest Groups', '')
+    ]

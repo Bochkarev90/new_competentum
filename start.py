@@ -1,11 +1,22 @@
-from input.excel import Excel
-from input import variables as v
+from subfunctions.sub import excel
 from tests.login import Login
+# from input import variables as v
 import time
 
-chapter_info = Excel(v.path, v.chapter_number, v.set_number).chapter_info()
-browser = Login(v.browser, v.revel, v.username, v.password).login()
+""" Входные данные"""
+revel = 0  # 1 если REVEL, 0 если ETEXT
+browser = 'chrome'
+path = 'C:/work/Bauldoff.xlsx'  # Путь до excel-файла
+username = 'manza2.5e.cqa.student10@mailinator.com' if revel else 'e2review1'
+password = 'Password1' if revel else 'Review1234'
+course_name = 'Manza_031119_TSP' if revel else 'Medical-Surgical Nursing, Clinical Reasoning in'  # Название курса
+chapter_number = 46  # Номер проверяемой главы
+set_number = 1  # Номер сета
+lo_pos = False  # False если в excel нет Learning Objective, если есть - номер столбца, начиная с нуля
+
+chapter_info = excel(path, chapter_number, set_number, lo_pos)
+browser = Login(browser, revel, username, password, course_name).book_entry()
 time.sleep(10)
 
-if v.browser == 'chrome':
-    browser.quit()
+# if v.browser == 'chrome':
+#     browser.quit()

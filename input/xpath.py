@@ -24,7 +24,7 @@ def xpc(tag, value):
 username_field = xp('input', 'name', 'username') if v.revel else xp('input', 'name', 'loginname')
 password_field = xp('input', 'name', 'password')
 main_button = xp('button', 'type', 'submit')
-course = xpc('h4', v.course_name) + "/following-sibling::div" if v.revel else xpc('span', v.course_name)
+course = xpc('h4', v.book) + "/following-sibling::div" if v.revel else xpc('span', v.book)
 # chapter_title = xpc('div', chapter_list_excel['name']) if v.revel else xpc('span', chapter_list_excel['name'])
 # previous_chapter_title = xpc('div', chapter_list_excel['previous_name'])
 past = xpc('*', 'Past')
