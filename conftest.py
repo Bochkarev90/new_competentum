@@ -5,6 +5,7 @@ from input.excel import Excel
 from selene.api import *
 from selene.conditions import visible
 import pytest
+from pages.login_page import LoginPage
 import time
 
 
@@ -28,8 +29,13 @@ def browser_setup():
 
 @pytest.yield_fixture(scope='module')
 def login_setup(browser_setup):
-    s(by.name('loginname')).send_keys(v.username)
-    s(by.name('password')).send_keys(v.password).press_enter()
+    login_page = LoginPage(browser.driver())
+
+    login_page.enter_username(v.username)
+    login_page.enter_password(v.password)
+    login_page.click_login()
+    # s(by.name('loginname')).send_keys(v.username)
+    # s(by.name('password')).send_keys(v.password).press_enter()
     s('.bookContainer').assure(visible, 30)
     yield
     s('button').click()
