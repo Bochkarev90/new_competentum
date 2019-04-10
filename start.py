@@ -1,5 +1,4 @@
 from subfunctions.sub import excel
-from tests.login import Login
 # from input import variables as v
 import time
 
@@ -15,8 +14,7 @@ set_number = 1  # Номер сета
 lo_pos = False  # False если в excel нет Learning Objective, если есть - номер столбца, начиная с нуля
 
 chapter_info = excel(path, chapter_number, set_number, lo_pos)
-browser = Login(browser, revel, username, password, course_name).book_entry()
-time.sleep(10)
+
 
 # if v.browser == 'chrome':
 #     browser.quit()
