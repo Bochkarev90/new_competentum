@@ -23,7 +23,7 @@ def browser_setup():
     # Запускает платформу (revel или etext)
     browser.open_url('https://revel.pearson.com/#/start' if v.revel else 'http://etext.pearson.com/eplayer/login')
     yield
-    # browser.quit()
+    browser.quit()
 
 
 @pytest.yield_fixture(scope='module')
@@ -32,13 +32,13 @@ def login_setup(browser_setup):
     s(by.name('password')).send_keys(v.password).press_enter()
     s('.bookContainer').assure(visible, 30)
     yield
-    # s('button').click()
+    s('button').click()
 
 
 @pytest.yield_fixture(scope='module')
 def book_setup(login_setup):
-    main_url = browser.driver().current_url
+    my_bookshelf_url = browser.driver().current_url
     ss('.bookContainer').element_by(have.text(v.book)).click()
     chapter = Excel(v.path, v.chapter_number, v.set_number, v.lo_pos)
     yield chapter
-    # browser.open_url(main_url)
+    browser.open_url(my_bookshelf_url)
