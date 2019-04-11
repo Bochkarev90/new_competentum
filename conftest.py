@@ -5,8 +5,8 @@ from input.excel import Excel
 from selene.api import *
 from selene.conditions import visible
 import pytest
+from pages.bookshelf_page import BookshelfPage
 from pages.login_page import LoginPage
-import time
 
 
 @pytest.yield_fixture(scope='module')
@@ -34,8 +34,6 @@ def login_setup(browser_setup):
     login_page.enter_username(v.username)
     login_page.enter_password(v.password)
     login_page.click_login()
-    # s(by.name('loginname')).send_keys(v.username)
-    # s(by.name('password')).send_keys(v.password).press_enter()
     s('.bookContainer').assure(visible, 30)
     yield
     s('button').click()
@@ -43,8 +41,8 @@ def login_setup(browser_setup):
 
 @pytest.yield_fixture(scope='module')
 def book_setup(login_setup):
-    my_bookshelf_url = browser.driver().current_url
-    ss('.bookContainer').element_by(have.text(v.book)).click()
-    chapter = Excel(v.path, v.chapter_number, v.set_number, v.lo_pos)
-    yield chapter
-    browser.open_url(my_bookshelf_url)
+    bookshelf_page = BookshelfPage(browser.driver(), v.book)
+    bookshelf_page.chapter_entry()
+    s('span.title').assure(visible, 30)
+    yield
+    browser.open_url(bookshelf_page.url)
