@@ -3,15 +3,17 @@ from pages.base_page import BasePage
 
 class BookshelfPage(BasePage):
 
-    def __init__(self, driver, chapter_title):
+    def __init__(self, driver, book_title):
         super().__init__(driver)
 
-        self.book_container_button_xpath = '//span[contains(text(), "' + chapter_title + '")]/parent::button'
+        self.logout_button_css = 'button[label="Log Out"]'
+
+        self.book_container_button_xpath = '//span[contains(text(), "' + book_title + '")]/parent::button'
         self.info_window_icon_xpath = self.book_container_button_xpath + '/following-sibling::button'
+
         self.info_window_p_css = 'p.body'
         self.info_window_div_css = 'div.desc-container'
         self.close_info_window_button_css = 'button.closeDialog'
-        self.logout_button_css = 'button[label="Log Out"]'
 
     def open_info_window(self):
         self.driver.find_element_by_xpath(self.info_window_icon_xpath).click()
